@@ -53,7 +53,7 @@ build() {
     --enable-static \
     --without-xft
 
-  make
+  make -j1
 }
 
 package() {

@@ -1,0 +1,63 @@
+# Maintainer: Alexey Pavlov <alexpux@gmail.com>
+
+_realname=librsvg
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgver=2.48.4
+pkgrel=2
+pkgdesc="SVG rendering library (mingw-w64)"
+arch=('any')
+url="https://wiki.gnome.org/Projects/LibRsvg"
+license=("LGPL")
+makedepends=("${MINGW_PACKAGE_PREFIX}-gcc"
+             "${MINGW_PACKAGE_PREFIX}-pkg-config"
+             "${MINGW_PACKAGE_PREFIX}-rust"
+             "setconf")
+depends=("${MINGW_PACKAGE_PREFIX}-gdk-pixbuf2"
+         "${MINGW_PACKAGE_PREFIX}-pango"
+         "${MINGW_PACKAGE_PREFIX}-cairo"
+         "${MINGW_PACKAGE_PREFIX}-libxml2")
+options=('staticlibs' 'strip')
+source=("https://download.gnome.org/sources/librsvg/${pkgver%.*}/${_realname}-${pkgver}.tar.xz"
+        "0005-hack-unixy-paths.patch")
+sha256sums=('28b63af85ced557383d3d3ece6e1f6938720dee1ecfa40d926bf1de4747c956e'
+            'b23b094c0cb65fcbbbb952350448de6f3430b30f273e05acdbf7a56d634212dc')
+
+prepare() {
+  cd "${srcdir}/${_realname}-${pkgver}"
+  patch -p1 -i "${srcdir}/0005-hack-unixy-paths.patch"
+
+  autoreconf -fiv
+}
+
+build() {
+  [[ -d "${srcdir}/build-${MINGW_CHOST}" ]] && rm -rf "${srcdir}/build-${MINGW_CHOST}"
+  cp -rf ${srcdir}/${_realname}-${pkgver} "${srcdir}/build-${MINGW_CHOST}"
+  cd "${srcdir}/build-${MINGW_CHOST}"
+
+  CXXFLAGS+=" -D_POSIX_SOURCE"
+  CFLAGS+=" -D_POSIX_SOURCE"
+
+  # an argument passed to glib-mkenums starts with a c++ comment
+  export MSYS2_ARG_CONV_EXCL="/*"
+
+  ../${_realname}-${pkgver}/configure \
+    --prefix=${MINGW_PREFIX} \
+    --build=${MINGW_CHOST} \
+    --host=${MINGW_CHOST} \
+    --disable-introspection \
+    --disable-vala \
+    --disable-silent-rules
+
+  # pass static rust package to linker
+  sed -i "s/^deplibs_check_method=.*/deplibs_check_method=\"pass_all\"/g" libtool
+  # add missing crt libs (ws2_32 and userenv) to LIBRSVG_LIBS
+  sed -i "s/^LIBRSVG_LIBS = .*/& -lws2_32 -luserenv/g" Makefile
+  make
+}
+
+package() {
+  cd "${srcdir}/build-${MINGW_CHOST}"
+  make DESTDIR="${pkgdir}" install
+  install -Dm644 "${srcdir}/${_realname}-${pkgver}/COPYING.LIB" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING.LIB"
+}

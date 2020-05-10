@@ -23,6 +23,7 @@ else
 	# msys64: remove preinstalled toolchains and swith to rtools40 repositories
     pacman --noconfirm -Rcsu $(pacman -Qqe | grep "^mingw-w64-")
     pacman --noconfirm -Rcsu gcc pkg-config
+    pacman -S --noconfirm mingw-w64-{i686,x86_64}-rust
     cp -f pacman.conf /etc/pacman.conf
 fi
 

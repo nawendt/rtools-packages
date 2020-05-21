@@ -14,10 +14,9 @@ jobs:
           MINGW_INSTALLS: mingw64
     steps:
       - powershell: |
-          Import-Module '.\scripts.ps1'
-          InstallMSYS64
-          C:\msys64\usr\bin\pacman -Syy --noconfirm pacman
-          C:\msys64\usr\bin\pacman -Suu --noconfirm --ask 20
+          (New-Object System.Net.WebClient).DownloadFile('http://repo.msys2.org/msys/x86_64/pacman-5.2.1-6-x86_64.pkg.tar.xz', 'pacman-5.2.1-6-x86_64.pkg.tar.xz')
+          C:\msys64\usr\bin\pacman -U --noconfirm pacman-5.2.1-6-x86_64.pkg.tar.xz
+          C:\msys64\usr\bin\pacman -Syu --noconfirm
         displayName: Installing msys64 build environment
       - script: |
           rmdir /s /Q "C:\Program Files\Boost"

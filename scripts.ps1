@@ -12,17 +12,18 @@ Function InstallMSYS64 {
 	7z x $zipPath -y -o"$env:USERPROFILE" | Out-Null
 
 	Write-Host "Unzipping installation package..."
-	7z x $tarPath -y -oC:\ | Out-Null
+	[system.io.directory]::CreateDirectory("C:\CI")
+	7z x $tarPath -y -oC:\CI\ | Out-Null
 	del $zipPath
 	del $tarPath
 
 	Write-Host "Initiating pacman..."
-	C:\msys64\usr\bin\bash.exe --login -c exit
+	C:\CI\msys64\usr\bin\bash.exe --login -c exit
 
 	# Workaround: revert to working version of pacman right now (avoid zstd/runtime breakage) remove when this is fixed upstream
-	C:\msys64\usr\bin\pacman --noconfirm -Sy
-	C:\msys64\usr\bin\pacman --noconfirm --needed -S bash pacman
-	C:\msys64\usr\bin\pacman --noconfirm -Suu
+	C:\CI\msys64\usr\bin\pacman --noconfirm -Sy
+	C:\CI\msys64\usr\bin\pacman --noconfirm --needed -S bash pacman
+	C:\CI\msys64\usr\bin\pacman --noconfirm -Suu
 	taskkill /IM gpg-agent.exe /F
 	taskkill /IM dirmngr.exe /F
 }

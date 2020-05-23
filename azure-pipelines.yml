@@ -16,12 +16,12 @@ jobs:
       - powershell: |
           Import-Module '.\scripts.ps1'
           InstallMSYS64
-          C:\msys64\usr\bin\pacman -Suu --noconfirm --ask 20
+          C:\CI\msys64\usr\bin\pacman -Suu --noconfirm --ask 20
         displayName: Installing msys64 build environment
       - script: |
           rmdir /s /Q "C:\Program Files\Boost"
-          C:\msys64\usr\bin\pacman --noconfirm --needed -S git
-          C:\msys64\usr\bin\bash --login -c "$(cygpath ${SYSTEM_DEFAULTWORKINGDIRECTORY})/ci-build.sh"
+          C:\CI\msys64\usr\bin\pacman --noconfirm --needed -S git
+          C:\CI\msys64\usr\bin\bash --login -c "$(cygpath ${SYSTEM_DEFAULTWORKINGDIRECTORY})/ci-build.sh"
         displayName: Building Packages
         env:
           BUILD_URL: dummy
